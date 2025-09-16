@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Assistance Tool</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .progress-container {
+            background-color: #f0f0f0;
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #6e8efb, #a777e3);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .question-container {
+            margin-bottom: 25px;
+        }
+        
+        .question-text {
+            font-size: 20px;
+            color: #444;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .option-btn {
+            padding: 12px 20px;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #495057;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .option-btn:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .feedback {
+            min-height: 60px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feedback.correct {
+            color: #155724;
+        }
+        
+        .feedback.wrong {
+            color: #721c24;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background-color: #6e8efb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background-color: #5a7dfa;
+        }
+        
+        .nav-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .restart-btn {
+            padding: 12px 25px;
+            background-color: #a777e3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background-color: #9566d3;
+        }
+        
+        .completion-message {
+            font-size: 22px;
+            color: #333;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Educational Assistance Tool</h1>
+        <p class="description">Click through the options to find answers to your questions. This tool will guide you step by step.</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div id="question-container" class="question-container">
+            <div class="question-text" id="questionText"></div>
+            <div class="options-container" id="optionsContainer"></div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" disabled>Previous</button>
+            <button class="nav-btn" id="nextBtn" disabled>Next</button>
+        </div>
+        
+        <button class="restart-btn hidden" id="restartBtn">Start Over</button>
+    </div>
+
+    <script>
+        // Quiz data - questions, options, and correct answers
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                options: ["London", "Berlin", "Paris", "Madrid"],
+                correctAnswer: 2
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                options: ["Venus", "Mars", "Jupiter", "Saturn"],
+                correctAnswer: 1
+            },
+            {
+                question: "What is 8 × 7?",
+                options: ["54", "56", "58", "60"],
+                correctAnswer: 1
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Michelangelo"],
+                correctAnswer: 2
+            },
+            {
+                question: "What is the largest ocean on Earth?",
+                options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+                correctAnswer: 3
+            }
+        ];
+
+        // DOM elements
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedback = document.getElementById('feedback');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const progressBar = document.getElementById('progressBar');
+        const questionContainer = document.getElementById('question-container');
+
+        // State variables
+        let currentQuestion = 0;
+        let userAnswers = Array(questions.length).fill(null);
+        let quizCompleted = false;
+
+        // Initialize the quiz
+        function initQuiz() {
+            showQuestion(currentQuestion);
+            updateProgressBar();
+            updateNavigation();
+        }
+
+        // Display the current question and options
+        function showQuestion(index) {
+            const question = questions[index];
+            questionText.textContent = `Question ${index + 1}: ${question.question}`;
+            
+            // Clear previous options
+            optionsContainer.innerHTML = '';
+            
+            // Create new options
+            question.options.forEach((option, i) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                
+                // If user has already answered this question
+                if (userAnswers[index] !== null) {
+                    if (i === question.correctAnswer) {
+                        button.classList.add('correct');
+                    } else if (userAnswers[index] === i && userAnswers[index] !== question.correctAnswer) {
+                        button.classList.add('wrong');
+                    }
+                }
+                
+                button.addEventListener('click', () => selectOption(i));
+                optionsContainer.appendChild(button);
+            });
+            
+            // Display feedback if already answered
+            if (userAnswers[index] !== null) {
+                if (userAnswers[index] === question.correctAnswer) {
+                    feedback.textContent = "Correct! Well done.";
+                    feedback.className = "feedback correct";
+                } else {
+                    feedback.textContent = "Try again.";
+                    feedback.className = "feedback wrong";
+                }
+            } else {
+                feedback.textContent = "";
+                feedback.className = "feedback";
+            }
+        }
+
+        // Handle option selection
+        function selectOption(optionIndex) {
+            if (userAnswers[currentQuestion] !== null) return; // Already answered
+            
+            userAnswers[currentQuestion] = optionIndex;
+            const question = questions[currentQuestion];
+            
+            // Show correct/wrong feedback
+            if (optionIndex === question.correctAnswer) {
+                feedback.textContent = "Correct! Well done.";
+                feedback.className = "feedback correct";
+            } else {
+                feedback.textContent = "Try again.";
+                feedback.className = "feedback wrong";
+            }
+            
+            // Update option buttons styling
+            const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+            optionButtons.forEach((button, i) => {
+                if (i === question.correctAnswer) {
+                    button.classList.add('correct');
+                } else if (i === optionIndex && i !== question.correctAnswer) {
+                    button.classList.add('wrong');
+                }
+            });
+            
+            updateProgressBar();
+            updateNavigation();
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            const answeredCount = userAnswers.filter(answer => answer !== null).length;
+            const progress = (answeredCount / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Check if all questions are answered
+            if (answeredCount === questions.length && !quizCompleted) {
+                quizCompleted = true;
+                showCompletionMessage();
+            }
+        }
+
+        // Update navigation buttons state
+        function updateNavigation() {
+            prevBtn.disabled = currentQuestion === 0;
+            
+            // Enable next button only if current question is answered
+            nextBtn.disabled = userAnswers[currentQuestion] === null || currentQuestion === questions.length - 1;
+        }
+
+        // Show quiz completion message
+        function showCompletionMessage() {
+            const correctAnswers = userAnswers.filter((answer, index) => 
+                answer === questions[index].correctAnswer
+            ).length;
+            
+            questionContainer.classList.add('hidden');
+            feedback.classList.add('hidden');
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            restartBtn.classList.remove('hidden');
+            
+            const completionMessage = document.createElement('div');
+            completionMessage.className = 'completion-message';
+            completionMessage.innerHTML = `
+                <h2>Quiz Completed!</h2>
+                <p>You got ${correctAnswers} out of ${questions.length} questions correct.</p>
+                <p>${correctAnswers === questions.length ? 'Perfect score! Congratulations!' : 
+                  correctAnswers >= questions.length / 2 ? 'Good job!' : 'Keep practicing to improve!'}</p>
+            `;
+            
+            questionContainer.parentNode.insertBefore(completionMessage, questionContainer.nextSibling);
+        }
+
+        // Event listeners for navigation
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+                updateNavigation();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+                updateNavigation();
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            // Reset quiz state
+            currentQuestion = 0;
+            userAnswers = Array(questions.length).fill(null);
+            quizCompleted = false;
+            
+            // Remove completion message if exists
+            const completionMessage = document.querySelector('.completion-message');
+            if (completionMessage) {
+                completionMessage.remove();
+            }
+            
+            // Show question container and navigation
+            questionContainer.classList.remove('hidden');
+            feedback.classList.remove('hidden');
+            prevBtn.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            
+            // Reset UI
+            showQuestion(currentQuestion);
+            updateProgressBar();
+            updateNavigation();
+        });
+
+        // Initialize the quiz when the page loads
+        window.addEventListener('load', initQuiz);
+    </script>
+</body>
+</html>
